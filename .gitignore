@@ -1,0 +1,17 @@
+################ CDK ################
+cdk/*.js
+cdk/!jest.config.js
+cdk/*.d.ts
+cdk/node_modules
+cdk/.cdk.staging
+cdk/cdk.out
+cdk/cdk.context.json
+
+################ NODE ################
+node_modules
+
+################ EDITOR ################
+.vscode
+
+################ OS ################
+.DS_Store

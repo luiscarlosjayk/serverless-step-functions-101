@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "deploy": "cd cdk && ENV_NAME=dev cdk deploy --require-approval=never"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-sfn": "^3.515.0"
+    "@aws-sdk/client-sfn": "^3.515.0",
+    "@aws-sdk/client-textract": "^3.521.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.134",

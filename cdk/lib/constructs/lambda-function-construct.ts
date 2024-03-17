@@ -6,8 +6,8 @@ import { Construct } from 'constructs';
 import * as path from 'path';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources';
-import { getResourcePrefix } from '../utils/resource-names';
 import { IQueue } from 'aws-cdk-lib/aws-sqs';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { LambdaDefinition, Environment } from '../../types';
 
 export interface LambdaConstructProps {
@@ -17,7 +17,6 @@ export interface LambdaConstructProps {
 
 export class LambdaConstruct extends Construct {
   lambda: lambda.Function;
-  liveAlias: lambda.Alias;
   role: iam.Role;
   definition: LambdaDefinition;
   
@@ -27,19 +26,32 @@ export class LambdaConstruct extends Construct {
     const { environment, definition } = props;
     this.definition = definition;
     
-    const functionName = `${getResourcePrefix(environment)}-${definition.name}-lambda`;
-    
-    const logGroup = new logs.LogGroup(this, `${definition.name}-loggroup`, {
-      retention: logs.RetentionDays.ONE_MONTH,
-      removalPolicy: RemovalPolicy.DESTROY,
-      logGroupName: `/aws/lambda/${functionName}`,
-    });
-    
     this.role = new iam.Role(this, 'role', {
       description: `Lambda role for ${this.definition.name}`,
       assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
     });
-    
+      
+    this.lambda = new nodejsLambda.NodejsFunction(this, definition.name, {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      environment: {
+        NODE_ENV: environment.envName,
+        ...definition.environment
+      },
+      architecture: lambda.Architecture.ARM_64,
+      handler: definition.handler,
+      timeout: definition.timeoutInSeconds,
+      memorySize: definition.memoryInMb,
+      description: definition.description,
+      role: this.role,
+      currentVersionOptions: {
+        removalPolicy: RemovalPolicy.DESTROY,
+      },
+      bundling: {
+        format: nodejsLambda.OutputFormat.ESM,
+      },
+      entry: path.join(__dirname, definition.entry)
+    });
+
     // User defined permissions
     if (Array.isArray(this.definition.permissions) && this.definition.permissions.length) {
       this.definition.permissions.forEach(({ name, policyStatements }) => {
@@ -50,8 +62,17 @@ export class LambdaConstruct extends Construct {
         )
       });
     }
-      
-      // Add permissions to send logs
+
+    this.addLogs();
+  }
+
+  private addLogs() {
+    const logGroup = new logs.LogGroup(this, 'loggroup', {
+      retention: logs.RetentionDays.ONE_MONTH,
+      removalPolicy: RemovalPolicy.DESTROY,
+      logGroupName: `/aws/lambda/${this.lambda.functionName}`,
+    });
+
     this.role.attachInlinePolicy(
       new iam.Policy(this, 'cloudwatch-policy', {
         statements: [
@@ -68,44 +89,22 @@ export class LambdaConstruct extends Construct {
         ],
       })
     );
-        
-    this.lambda = new nodejsLambda.NodejsFunction(this, definition.name, {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      environment: {
-        NODE_ENV: environment.envName,
-        ...definition.environment
-      },
-      architecture: lambda.Architecture.ARM_64,
-      handler: definition.handler,
-      timeout: definition.timeoutInSeconds,
-      memorySize: definition.memoryInMb,
-      description: definition.description,
-      functionName,
-      role: this.role,
-      currentVersionOptions: {
-        removalPolicy: RemovalPolicy.DESTROY,
-      },
-      bundling: {
-        format: nodejsLambda.OutputFormat.ESM,
-      },
-      entry: path.join(__dirname, definition.entry)
-    });
-
-    this.liveAlias = new lambda.Alias(this, 'LambdaAlias', {
-      aliasName: 'live',
-      version: this.lambda.currentVersion,
-      description: `Live version of ${functionName}`,
-      ...(definition.provisionedConcurrency
-        ? {
-          provisionedConcurrentExecutions: definition.provisionedConcurrency
-        }
-        : {})
-    })
   }
   
-  addSQSEventSource(queue: IQueue): void {
-    const eventSource = new lambdaEventSources.SqsEventSource(queue);
+  addSQSEventSource(queue: IQueue, options?: lambdaEventSources.SqsEventSourceProps): LambdaConstruct {
+    const eventSource = new lambdaEventSources.SqsEventSource(queue, options);
     this.lambda.addEventSource(eventSource);
+
+    return this;
+  }
+
+  addS3EventSource(bucket: s3.IBucket): LambdaConstruct {
+    const eventSource = new lambdaEventSources.S3EventSourceV2(bucket, {
+      events: [ s3.EventType.OBJECT_CREATED ],
+    });
+    this.lambda.addEventSource(eventSource);
+
+    return this;
   }
 
 }

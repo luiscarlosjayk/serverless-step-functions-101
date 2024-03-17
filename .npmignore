@@ -1,0 +1,8 @@
+################ CDK ################
+
+cdk/*.ts
+!cdk/*.d.ts
+
+# CDK asset staging directory
+cdk/.cdk.staging
+cdk/cdk.out

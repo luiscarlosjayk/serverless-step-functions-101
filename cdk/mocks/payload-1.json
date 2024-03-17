@@ -1,0 +1,32 @@
+{
+  "receipts": [
+    {
+      "bucketName": "step-functions-101-receipts",
+      "key": "recibo-1.png"
+    },
+    {
+      "bucketName": "step-functions-101-receipts",
+      "key": "recibo-2.png"
+    },
+    {
+      "bucketName": "step-functions-101-receipts",
+      "key": "recibo-3.png"
+    },
+    {
+      "bucketName": "step-functions-101-receipts",
+      "key": "recibo-4.png"
+    },
+    {
+      "bucketName": "step-functions-101-receipts",
+      "key": "recibo-5.png"
+    },
+    {
+      "bucketName": "step-functions-101-receipts",
+      "key": "recibo-6.png"
+    },
+    {
+      "bucketName": "step-functions-101-receipts",
+      "key": "recibo-7.png"
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { StateMachineDemoStack } from '../lib/stacks/state-machine-demo-stack';
+import { ReceiptProcessorStateMachineStack } from '../lib/stacks/receipt-processor-sfn-stack';
 import { getEnvironment } from '../lib/config/environments';
 
 const environment = getEnvironment();
 
 const app = new cdk.App();
-new StateMachineDemoStack(app, 'StateMachineDemoStack', {
+new ReceiptProcessorStateMachineStack(app, `${environment.envName}-expenses-processor-demo-stack`, {
   environment,
   tags: {
     OwnerTeam: environment.team,

@@ -8,6 +8,12 @@ export enum AWSRegion {
   OHIO = 'us-east-2',
 };
 
+export enum Aliases {
+  AMOUNT = 'amount',
+  DATE = 'date',
+  CONCEPT = 'concept',
+}
+
 export enum EnvironmentName {
   DEV = 'dev',
   QA = 'qa',
@@ -21,7 +27,7 @@ export interface Environment {
   appName: string;
   region: AWSRegion;
   team: string;
-  scheduleOptions?: CronOptions
+  bucketName: string;
 };
 
 export interface LambdaDefinition {

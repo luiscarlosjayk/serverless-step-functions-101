@@ -1,5 +1,3 @@
-
-
 # DEMO: Receipt calculator
 
 Given certain receipts of banks transactions.

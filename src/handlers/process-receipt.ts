@@ -1,12 +1,19 @@
 import { AnalyzeDocumentCommand, AnalyzeDocumentCommandInput, TextractClient } from '@aws-sdk/client-textract';
 
-export async function handler() {
+export interface Event {
+  bucketName: string;
+  key: string;
+}
+
+export async function handler(event: Event) {
+  console.log(JSON.stringify(event, null, 2));
+
   const textractClient = new TextractClient();
   const input: AnalyzeDocumentCommandInput = {
     Document: {
       S3Object: {
-        Bucket: process.env.BUCKET_NAME,
-        Name: process.env.RECEIPT_FILE_NAME,
+        Bucket: event.bucketName,
+        Name: event.key,
       },
     },
     FeatureTypes: ['QUERIES'],
@@ -19,11 +26,25 @@ export async function handler() {
         {
           Alias: 'date',
           Text: 'What is the date?',
+        },
+        {
+          Alias: 'concept',
+          Text: 'What is the "concepto"?',
         }
       ],
     },
   };
+
   const command = new AnalyzeDocumentCommand(input);
-  const response = await textractClient.send(command);
-  console.log(JSON.stringify(response, null, 2));
+  try {
+    const response = await textractClient.send(command);
+    console.log(JSON.stringify(response, null, 2));
+    
+    return response;
+  } catch (error) {
+    const message = `Error processing receipt: ${error.message}`;
+    console.error(error);
+
+    throw new Error(message);
+  }
 }

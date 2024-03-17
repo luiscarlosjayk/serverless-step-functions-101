@@ -1,0 +1,17 @@
+StartAt: Lookup User
+States:
+  Lookup User:
+    Type: Parallel
+    End: true
+    Branches:
+    - StartAt: Lookup Address
+      States:
+        Lookup Address:
+          Type: Pass
+          End: true
+    - StartAt: Lookup Phone
+      States:
+        Lookup Phone:
+          Type: Pass
+          End: true
+    InputPath: $.userId

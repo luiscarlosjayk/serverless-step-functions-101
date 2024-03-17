@@ -1,0 +1,20 @@
+StartAt: Count items
+States:
+  Count items:
+    Type: Pass
+    Parameters:
+      count.$: States.ArrayLength($.items)
+    Next: More than 5 items?
+    ResultPath: $
+  More than 5 items?:
+    Type: Choice
+    Choices:
+    - Variable: $.count
+      NumericGreaterThanEquals: 5
+      Next: Process Items
+      Comment: Greater or equal than 5
+    Default: Do nothing
+  Do nothing:
+    Type: Fail
+  Process Items:
+    Type: Succeed

@@ -1,0 +1,28 @@
+StartAt: Select image converter
+States:
+  Select image converter:
+    Type: Choice
+    Choices:
+    - Or:
+      - Variable: $.format
+        StringEquals: jpg
+      - Variable: $.format
+        StringEquals: jpeg
+      Next: RAW to JPEG
+      Comment: Is format JPG or JPEG?
+    - Variable: $.format
+      StringEquals: png
+      Next: RAW to PNG
+      Comment: Is format PNG?
+    Default: Unsuppported Type
+  RAW to JPEG:
+    Type: Pass
+    Next: Load in Database
+  Load in Database:
+    Type: Pass
+    End: true
+  Unsuppported Type:
+    Type: Fail
+  RAW to PNG:
+    Type: Pass
+    Next: Load in Database

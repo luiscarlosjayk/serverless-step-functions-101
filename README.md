@@ -6,7 +6,7 @@ The process will begin once one or more payment receipts are uploaded in a S3 Bu
 
 This is an example of the expected receipt images:
 
-[![Receipt Example](./assets/recibo-1.png)](./assets/recibo-1.png)
+[![Receipt Example](./assets/recibo-1.png | width=140)](./assets/recibo-1.png)
 
 Another Lambda Function is subscribed to the SQS queue and will receive the batch of messages when there are receipts to process, starting the execution of the state machine.
 

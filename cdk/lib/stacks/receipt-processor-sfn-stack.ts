@@ -199,8 +199,7 @@ export class ReceiptProcessorStateMachineStack extends cdk.Stack {
       }
     });
     
-    par
-allelGetQueryAnswers.branch(getAmountTask, getDateTask, getConceptTask);
+    parallelGetQueryAnswers.branch(getAmountTask, getDateTask, getConceptTask);
     processReceipt.next(parallelGetQueryAnswers);
 
     /**

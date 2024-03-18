@@ -1,6 +1,6 @@
 /**
- * This lambda functions is triggered by a S3 event,
- * which in turns sends these to a SQS queue in batch.
+ * This lambda functions is triggered by a S3 event every time a file is uploaded.
+ * For each record, which maps to an uploaded file, it sends a message to a SQS queue.
  */
 import { S3Event, Context } from 'aws-lambda';
 import { SQSClient, SendMessageBatchCommandInput, SendMessageBatchCommand, SendMessageBatchRequestEntry } from "@aws-sdk/client-sqs";
@@ -44,8 +44,8 @@ export async function handler(event: S3Event, context: Context) {
     console.log(JSON.stringify(response, null, 2));
     
     return response;
-  } catch (error) {
-    const message = `Error processing S3 event: ${error.message}`;
+  } catch (error: any) {
+    const message = `Error processing S3 event: ${error?.message}`;
     console.error(error);
 
     throw new Error(message);

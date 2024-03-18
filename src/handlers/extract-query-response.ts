@@ -1,3 +1,9 @@
+/**
+ * This lambda function processes the response from Amazon Textract
+ * seeking for one of the possible queries.
+ * The query looked for is given by the "alias" property in the input.
+ * alias: amount | date | concept
+ */
 import { AnalyzeDocumentCommandOutput } from '@aws-sdk/client-textract';
 
 export interface Event {

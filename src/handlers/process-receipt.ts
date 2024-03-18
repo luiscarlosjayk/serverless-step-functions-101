@@ -1,3 +1,8 @@
+/**
+ * This lambda function processes a Receipt image in a S3 bucket
+ * using Amazon Textract to extract the amount, date and concept from it
+ * and returns the result to the output.
+ */
 import { AnalyzeDocumentCommand, AnalyzeDocumentCommandInput, TextractClient } from '@aws-sdk/client-textract';
 
 export interface Event {
@@ -41,8 +46,8 @@ export async function handler(event: Event) {
     console.log(JSON.stringify(response, null, 2));
     
     return response;
-  } catch (error) {
-    const message = `Error processing receipt: ${error.message}`;
+  } catch (error: any) {
+    const message = `Error processing receipt: ${error?.message}`;
     console.error(error);
 
     throw new Error(message);

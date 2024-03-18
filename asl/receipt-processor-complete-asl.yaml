@@ -1,0 +1,195 @@
+{
+  "StartAt": "Count Receipts",
+  "States": {
+    "Count Receipts": {
+      "Type": "Pass",
+      "ResultPath": "$.info",
+      "Parameters": {
+        "receiptsCount.$": "States.ArrayLength($.receipts)"
+      },
+      "Next": "Has Receipts?"
+    },
+    "Has Receipts?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.info.receiptsCount",
+          "NumericGreaterThan": 0,
+          "Next": "Process Receipts"
+        }
+      ],
+      "Default": "No Receipts"
+    },
+    "No Receipts": {
+      "Type": "Fail"
+    },
+    "Process Receipts": {
+      "Type": "Map",
+      "ResultPath": "$.processedReceipts",
+      "Next": "Generate Prompt",
+      "ItemsPath": "$.receipts",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Process Receipt",
+        "States": {
+          "Process Receipt": {
+            "Next": "Parallel Get Query Answers",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ClientExecutionTimeoutException",
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 6,
+                "BackoffRate": 2
+              }
+            ],
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:{region}:{account}:function:dev-expenses-processor-de-receiptprocessorlambda"
+          },
+          "Parallel Get Query Answers": {
+            "Type": "Parallel",
+            "End": true,
+            "Branches": [
+              {
+                "StartAt": "Get receipt amount",
+                "States": {
+                  "Get receipt amount": {
+                    "End": true,
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ClientExecutionTimeoutException",
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException"
+                        ],
+                        "IntervalSeconds": 2,
+                        "MaxAttempts": 6,
+                        "BackoffRate": 2
+                      }
+                    ],
+                    "Type": "Task",
+                    "ResultSelector": {
+                      "amount.$": "$"
+                    },
+                    "Resource": "arn:aws:lambda:{region}:{account}:function:dev-expenses-processor-de-getqueryanswerlambda",
+                    "Parameters": {
+                      "textractResponse.$": "$",
+                      "alias": "amount"
+                    }
+                  }
+                }
+              },
+              {
+                "StartAt": "Get receipt date",
+                "States": {
+                  "Get receipt date": {
+                    "End": true,
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ClientExecutionTimeoutException",
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException"
+                        ],
+                        "IntervalSeconds": 2,
+                        "MaxAttempts": 6,
+                        "BackoffRate": 2
+                      }
+                    ],
+                    "Type": "Task",
+                    "ResultSelector": {
+                      "date.$": "$"
+                    },
+                    "Resource": "arn:aws:lambda:{region}:{account}:function:dev-expenses-processor-de-getqueryanswerlambda",
+                    "Parameters": {
+                      "textractResponse.$": "$",
+                      "alias": "date"
+                    }
+                  }
+                }
+              },
+              {
+                "StartAt": "Get receipt concept",
+                "States": {
+                  "Get receipt concept": {
+                    "End": true,
+                    "Retry": [
+                      {
+                        "ErrorEquals": [
+                          "Lambda.ClientExecutionTimeoutException",
+                          "Lambda.ServiceException",
+                          "Lambda.AWSLambdaException",
+                          "Lambda.SdkClientException"
+                        ],
+                        "IntervalSeconds": 2,
+                        "MaxAttempts": 6,
+                        "BackoffRate": 2
+                      }
+                    ],
+                    "Type": "Task",
+                    "ResultSelector": {
+                      "concept.$": "$"
+                    },
+                    "Resource": "arn:aws:lambda:{region}:{account}:function:dev-expenses-processor-de-getqueryanswerlambda",
+                    "Parameters": {
+                      "textractResponse.$": "$",
+                      "alias": "concept"
+                    }
+                  }
+                }
+              }
+            ],
+            "ResultSelector": {
+              "amount.$": "$[0].amount",
+              "date.$": "$[1].date",
+              "concept.$": "$[2].concept"
+            }
+          }
+        }
+      },
+      "MaxConcurrency": 5
+    },
+    "Generate Prompt": {
+      "Next": "Summarize Totals",
+      "Type": "Task",
+      "ResultPath": "$.prompt",
+      "Resource": "arn:aws:lambda:{region}:{account}:function:dev-expenses-processor-Eval",
+      "Parameters": {
+        "expression": "`\n\nHuman: I want the raw json resulting output after summarizing expenses by month.\n    No explanation is needed.\n    INPUT:\n    ${JSON.stringify($.processedReceipts)}\n    \n\nAssistant:`",
+        "expressionAttributeValues": {
+          "$.processedReceipts.$": "$.processedReceipts"
+        }
+      }
+    },
+    "Summarize Totals": {
+      "End": true,
+      "Type": "Task",
+      "OutputPath": "$.completion",
+      "ResultSelector": {
+        "completion.$": "States.StringToJson($.Body.completion)"
+      },
+      "Resource": "arn:aws:states:::bedrock:invokeModel",
+      "Parameters": {
+        "ModelId": "arn:aws:bedrock:{region}::foundation-model/anthropic.claude-instant-v1",
+        "Body": {
+          "prompt.$": "$.prompt",
+          "temperature": 1,
+          "max_tokens_to_sample": 300,
+          "top_p": 1,
+          "top_k": 250,
+          "stop_sequences": [
+            "Human"
+          ]
+        }
+      }
+    }
+  }
+}

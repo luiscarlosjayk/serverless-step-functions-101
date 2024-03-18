@@ -1,0 +1,14 @@
+StartAt: Wait 60 seconds
+States:
+  Wait 60 seconds:
+    Type: Wait
+    Seconds: 60
+    Next: Wait until datetime
+  Wait until datetime:
+    Type: Wait
+    Timestamp: '2024-07-16T12:00:00Z'
+    Next: Wait seconds given in input
+  Wait seconds given in input:
+    Type: Wait
+    End: true
+    SecondsPath: $.waitUntil

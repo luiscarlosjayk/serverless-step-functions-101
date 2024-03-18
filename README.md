@@ -1,5 +1,7 @@
 # DEMO: Receipts Total Calculator
 
+## Application Description
+
 We are creating a state machine with the AWS Step Functions service to process payment receipts from our bank and summarize the total expenses grouped by date with some help from ML (Machine Learning) and AI (Artificial Intelligence).
 
 The process will begin once one or more payment receipts are uploaded in a S3 Bucket, this action will trigger a Lambda Function that sends messages to a SQS queue for them to be processed later.
@@ -9,6 +11,10 @@ This is an example of the expected receipt images:
 <img alt="Receipt Example" src="./assets/recibo-1.png" width="50%">
 
 Another Lambda Function is subscribed to the SQS queue and will receive the batch of messages when there are receipts to process, starting the execution of the state machine.
+
+This is a brief diagram of the architecture described:
+
+<img alt="Architecture Diagram" src="./assets/architecture.png" width="50%">
 
 First thing our state machine does is count the number of receipts to process, this is in order to be able to validate whether it wasn't triggered without any receipt pending for processing, in such case it will just fail and end the execution.
 

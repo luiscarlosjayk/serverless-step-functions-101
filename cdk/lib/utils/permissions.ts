@@ -1,4 +1,4 @@
-import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Effect } from 'aws-cdk-lib/aws-iam';
 
 export function createSFNStartExecutionPolicy(stateMachineArn: string) {
   return {
@@ -34,7 +34,7 @@ export function createSQSSendMessagePolicy(queueArn: string) {
   };
 }
 
-export function createTextractAnalyzeDocumentPolicy() {
+export function createTextractAnalyzeDocumentPolicy(bucketName: string) {
   return {
     name: 'textract-analyze-document-task-policy',
     policyStatements: [
@@ -45,7 +45,7 @@ export function createTextractAnalyzeDocumentPolicy() {
           'textract:StartDocumentAnalysis', // async
           'textract:GetDocumentAnalysis', // async
         ],
-        resources: ['*']
+        resources: [`arn:aws:textract:*:*:document/${bucketName}/*`]
       }
     ]
   };

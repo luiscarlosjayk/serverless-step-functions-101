@@ -25,11 +25,9 @@ export class ReceiptProcessorStateMachineStack extends cdk.Stack {
     /**
      * S3 Bucket
      * 
-     * Imports S3 Bucket given in environment configuration.
-     * Notice the S3 Bucket is not created in this stack,
-     * but must previously exist.
+     * Creates a new S3 Bucket to upload the receipts to.
      */
-    const receiptsBucket = s3.Bucket.fromBucketName(this, 'receipts-bucket', environment.bucketName);
+    const receiptsBucket = new s3.Bucket(this, 'receipts-bucket');
 
     /**
      * SQS Queue: Receipt Processor

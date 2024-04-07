@@ -56,13 +56,13 @@ yarn install
 
 ```bash
 # pnpm
-pnpm run cdk:synt
+pnpm run cdk:synth
 
 # npm
-npm run cdk:synt
+npm run cdk:synth
 
 # yarn
-yarn run cdk:synt
+yarn run cdk:synth
 ```
 
 ### 3. Deploy CDK Stack

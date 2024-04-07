@@ -35,7 +35,7 @@ We will query for the `amount`, `date`, and `concept` of the payment.
 
 If you would like to see how it looks like in the ASL (Amazon States Language), open the file at [./asl/receipt-processor-complete-asl.yaml](./asl/receipt-processor-complete-asl.yaml).
 
-## How to run this project
+## How to deploy this project?
 
 This projects uses [AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/home.html) to deploy a CloudFormation stack with a state machine.
 
@@ -96,6 +96,51 @@ ENV_NAME=qa  npm run cdk:deploy
 # yarn
 ENV_NAME=qa  yarn run cdk:deploy
 ```
+
+## How to run this project?
+
+After [deploying](#how-to-deploy-this-project) you can grab the example receipts images provided in the assets folder of this same repository and upload them to the S3 bucket generated.
+
+That will trigger a coreography between the S3 bucket, a lambda function and a SQS queue, that will trigger the Step Functions state machine orchestrator, which is the main topic of this project.
+
+### How to manually trigger the State Machine
+
+You can also manually trigger the state machine, mimicking what the S3 bucket, lambda and SQS queue do in conjuntion, by simply provide the expected payload as the initial state of the Step Functions state machine.
+
+The payload should follow the shape defined in the following Typescript type alias:
+
+```typescript
+type SateMachinePayload = {
+  receipts: Array<{
+    bucketName: string;
+    key: string;
+  }>;
+}
+```
+
+Where the `key` property is the receipt file path within the bucket given in `bucketName`.
+
+Example:
+```json
+{
+  "receipts": [
+    {
+      "bucketName": "myReceiptBucket",
+      "key": "recibo-1.png"
+    },
+    {
+      "bucketName": "myReceiptBucket",
+      "key": "recibo-2.png"
+    },
+    {
+      "bucketName": "myReceiptBucket",
+      "key": "recibo-3.png"
+    }
+  ]
+}
+```
+
+Remember you can initialize an execution of a Step Functions state machine via the AWS Console, AWS CLI and/or AWS SDK.
 
 ## Who is this content for?
 
